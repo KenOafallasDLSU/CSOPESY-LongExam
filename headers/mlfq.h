@@ -49,7 +49,13 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       countdown = aQueue[QOrdered[QActive]].quantum;
 
       //get new active process if exists
-      newActive = peek(&(aQueue[QOrdered[QActive]]));
+      int i;
+      for(i=0; i<nQueues; i++)
+      {
+        newActive = peek(&(aQueue[QOrdered[i]]));
+        if(newActive >= 0)
+          break;
+      }
       if(newActive >= 0)
       {
         active = dequeue(&(aQueue[QOrdered[QActive]]));
