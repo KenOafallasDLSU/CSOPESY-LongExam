@@ -6,7 +6,7 @@ Section: S15
 ***********************************************/
 struct Queue
 {
-    int *elements;
+    int elements[100];
     int size;
     int max;
     int head;
@@ -16,13 +16,12 @@ struct Queue
 	int quantum;
 };
 
-void initQueue(int n, struct Queue *q)
+void initQueue(struct Queue *q)
 {
-	q->elements = (int*)malloc(n * sizeof(int));
-	q->max = n;
+    q->max = 100
 	q->size = 0;
     q->head = 0;
-    q->tail = n-1;
+    q->tail = 99;
 }
 
 int peek(struct Queue *q)

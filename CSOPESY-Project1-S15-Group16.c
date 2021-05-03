@@ -4,20 +4,12 @@ Names: TAN, DARREN
 Group: 16
 Section: S15
 ***************************************************************/
-
-
 #include <stdio.h>
 
-#include "queue.h"
-
-
-typedef struct Processes {
-	int id;
-	int arrival_time;
-	int total_exec_time;
-	int burst_time_length;
-	int often;
-} Process;
+#include "headers/queue.h"
+#include "headers/process.h"
+#include "headers/helpers.h"
+#include "headers/mlfq.h"
 
 void 
 priorityBoost(struct Queue queuelist[], int nQueues)
