@@ -48,14 +48,14 @@ main()
 	
 	
 	struct Queue queuelist[nQueues]; // Queues
-        struct Process processlist[nProcesses]; // Processes
+    struct Process processlist[nProcesses]; // Processes
 	int i;
 	
 	for(i = 0; i < nQueues; i++)
 		fscanf(fp, "%d %d %d", queuelist[i].id, queuelist[i].priority, queuelist[i].quantum); 
 	
 	for(i = 0; i < nProcesses; i++)
-		fscanf(fp, "%d %d %d %d %d", processlist[i].id, processlist[i].arrival_time, processlist[i].total_exec_time, processlist[i].burst_time_length, processlist[i].often); 
+		fscanf(fp, "%d %d %d %d %d", processlist[i].processID, processlist[i].arrivalTime, processlist[i].executionTime, processlist[i].ioLength, processlist[i].ioFrequency); 
 	
 	priorityBoost(queuelist, nQueues);
 	
