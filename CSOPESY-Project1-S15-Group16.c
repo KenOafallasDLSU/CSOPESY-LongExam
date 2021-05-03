@@ -13,18 +13,6 @@ Section: S15
 #include "headers/helpers.h"
 #include "headers/mlfq.h"
 
-// void 
-// priorityBoost(struct Queue queuelist[], int nQueues)
-// {
-// 	int i, element;
-	
-// 	for(i = 0; i < nQueues; i++)
-// 	{
-// 		element = dequeue(&queuelist[i + 1]);
-// 		enqueue(element, &queuelist[0]);
-// 	}
-// }
-
 int
 main()
 {
@@ -47,7 +35,24 @@ main()
         return 0;
     }
     
-    fscanf(fp, "%d %d %d", &nQueues, &nProcesses, &time_period); 
+    valid = fscanf(fp, "%d %d %d", &nQueues, &nProcesses, &time_period); 
+		if(valid < 3)
+		{
+			printf("ERROR: Invalid input");
+			return 0;
+		}
+		
+	if(nQueues < 2 || nQueues > 5)
+	{
+		printf("ERROR: Queue count out of scope");
+		return 0;
+	}
+	
+	if(nProcesses < 3 || nProcesses > 100)
+	{
+		printf("ERROR: Process count out of scope");
+		return 0;
+	}
 	
 	struct Queue queuelist[nQueues]; // Queues
   	struct Process processlist[nProcesses]; // Processes
@@ -56,14 +61,22 @@ main()
 	for(i = 0; i < nQueues; i++)
 	{
 		valid = fscanf(fp, "%d %d %d", &queuelist[i].id, &queuelist[i].priority, &queuelist[i].quantum); 
-		if(valid < 3) return 0;
+		if(valid < 3)
+		{
+			printf("ERROR: Invalid queue input");
+			return 0;
+		}
 		initQueue(&queuelist[i]);
 	}
 	
 	for(i = 0; i < nProcesses; i++)
 	{ 
 		valid = fscanf(fp, "%d %d %d %d %d", &processlist[i].processID, &processlist[i].arrivalTime, &processlist[i].executionTime, &processlist[i].ioLength, &processlist[i].ioFrequency); 
-		if(valid < 5) return 0;
+		if(valid < 5) 
+		{
+			printf("ERROR: Invalid process input");
+			return 0;
+		}
 		initProcess(&processlist[i]);
 		if(processlist[i].executionTime <= 0)
 		{
@@ -73,7 +86,6 @@ main()
 	}
 	
 	mlfq(processlist, nProcesses, queuelist, nQueues, time_period);
-	//priorityBoost(queuelist, nQueues);
 	
 	return 0;
 }
