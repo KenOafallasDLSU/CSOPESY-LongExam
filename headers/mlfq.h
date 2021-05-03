@@ -59,8 +59,7 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
       if(newProcess >= 0 && aProcesses[newProcess].prevQueue >= 0)
       {
-        enqueue(newProcess, &(aQueues[aProcesses[newProcess].prevQueue]));
-//        printf("%d Enqueued to %d", newProcess, aProcesses[newProcess].prevQueue);
+        //printf("IO %d Enqueued to %d at %d\n", newProcess, aProcesses[newProcess].prevQueue, systemTime);
         if(QActive > aProcesses[newProcess].prevQueue) 
           preempt = 1;
     	}
@@ -71,6 +70,20 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
     if(active < 0) //no active
     {
 //      printf("IN IDLE\n");
+      //check IO arrivals
+      loc = 0;
+      do{
+        newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
+        if(newProcess >= 0 && aProcesses[newProcess].prevQueue >= 0)
+        {
+          enqueue(newProcess, &(aQueues[QOrdered[aProcesses[newProcess].prevQueue]]));
+          //printf("IO %d Enqueued to %d at %d\n", newProcess, aProcesses[newProcess].prevQueue, systemTime);
+          if(QActive > aProcesses[newProcess].prevQueue) 
+            preempt = 1;
+        }
+        loc = newProcess+1;
+      } while(newProcess != -1);
+
       //get new active process if exists
       int i;
       for(i=0; i<nQueues; i++)
@@ -123,7 +136,7 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       if(aProcesses[active].tsCountdown == 0 && QActive < nQueues-1)
       {
         aProcesses[active].prevQueue = QActive+1;
-        printf("P[%d] Demoted to %d\n", active, QActive+1);
+        //printf("P[%d] Demoted to %d at %d\n", active, QActive+1, systemTime);
       }
       else
         aProcesses[active].prevQueue = QActive;
@@ -131,6 +144,20 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       //wait for return
       if(aProcesses[active].remainingTime > 0)
         aProcesses[active].arrivalTime = aProcesses[active].ioLength + systemTime;
+
+      //check IO arrivals
+      loc = 0;
+      do{
+        newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
+        if(newProcess >= 0 && aProcesses[newProcess].prevQueue >= 0)
+        {
+          enqueue(newProcess, &(aQueues[QOrdered[aProcesses[newProcess].prevQueue]]));
+          //printf("IO %d Enqueued to %d at %d\n", newProcess, aProcesses[newProcess].prevQueue, systemTime);
+          // if(QActive > aProcesses[newProcess].prevQueue) 
+          //   preempt = 1;
+        }
+        loc = newProcess+1;
+      } while(newProcess != -1);
 
       if(powerUps > 0)
       {
@@ -182,6 +209,20 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       if(QActive != 0 && aQueues[QOrdered[0]].size > 0) 
         QActive = 0;
 
+      //check IO arrivals
+      loc = 0;
+      do{
+        newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
+        if(newProcess >= 0 && aProcesses[newProcess].prevQueue >= 0)
+        {
+          enqueue(newProcess, &(aQueues[QOrdered[aProcesses[newProcess].prevQueue]]));
+          //printf("IO %d Enqueued to %d at %d\n", newProcess, aProcesses[newProcess].prevQueue, systemTime);
+          // if(QActive > aProcesses[newProcess].prevQueue) 
+          //   preempt = 1;
+        }
+        loc = newProcess+1;
+      } while(newProcess != -1);
+
       if(powerUps > 0)
       {
         powerUps--;
@@ -214,6 +255,22 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       else
         countdown = aQueues[QOrdered[QActive]].quantum;
     }
+    else
+    {
+      //check IO arrivals
+      loc = 0;
+      do{
+        newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
+        if(newProcess >= 0 && aProcesses[newProcess].prevQueue >= 0)
+        {
+          enqueue(newProcess, &(aQueues[QOrdered[aProcesses[newProcess].prevQueue]]));
+          //printf("IO %d Enqueued to %d at %d\n", newProcess, aProcesses[newProcess].prevQueue, systemTime);
+          // if(QActive > aProcesses[newProcess].prevQueue) 
+          //   preempt = 1;
+        }
+        loc = newProcess+1;
+      } while(newProcess != -1);
+    }
     countdown--;
     if(countdown == 0)
       countdown = aQueues[QOrdered[QActive]].quantum;
@@ -242,17 +299,6 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
     if(active >=0 && aProcesses[active].remainingTime == 0)
     {
       aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
-
-      //alloc more array space for adding IO record
-      // if(aProcesses[active].ioCountdown == 0)
-      // {
-      //   if(aProcesses[active].runCnt >= 300)
-      //     addSpace(&aProcesses[active]);
-      //   aProcesses[active].aActivity[aProcesses[active].runCnt] = -1;
-      //   aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
-      //   aProcesses[active].aEnd[aProcesses[active].runCnt] = systemTime + aProcesses[active].ioLength;
-      //   aProcesses[active].runCnt++;
-      // }
 
       printProcessReport(&aProcesses[active]);
       
