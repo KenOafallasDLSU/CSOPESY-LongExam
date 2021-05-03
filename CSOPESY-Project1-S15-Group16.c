@@ -72,7 +72,7 @@ main()
 		}
 	}
 	
-	mlfq(processlist, nProcesses, queuelist, nQueues);
+	mlfq(processlist, nProcesses, queuelist, nQueues, time_period);
 	//priorityBoost(queuelist, nQueues);
 	
 	return 0;
