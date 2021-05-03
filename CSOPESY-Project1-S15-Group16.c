@@ -61,8 +61,7 @@ main()
 	}
 	
 	for(i = 0; i < nProcesses; i++)
-	{
-		//valid = fscanf(fp, "%d %d %d %d %d", processlist[i].processID, processlist[i].arrival_time, processlist[i].total_exec_time, processlist[i].burst_time_length, processlist[i].often); 
+	{ 
 		valid = fscanf(fp, "%d %d %d %d %d", &processlist[i].processID, &processlist[i].arrivalTime, &processlist[i].executionTime, &processlist[i].ioLength, &processlist[i].ioFrequency); 
 		if(valid < 5) return 0;
 		initProcess(&processlist[i]);
