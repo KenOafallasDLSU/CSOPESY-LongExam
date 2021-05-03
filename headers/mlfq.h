@@ -6,13 +6,15 @@ Section: S15
 ***********************************************/
 void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], int nQueues, int boostTime)
 {
+  int preempt = 0;
+
   int newProcess;
   int systemTime = 0;
   int newActive = -1;
   int active = -1;
   int QActive = 0;
   int powerUps = 0;
-  int countdown;
+  int countdown = 0;
   int i, j, k;
 
   //order Queues
@@ -32,26 +34,43 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
 //  int x;
 //  for(x=0; x<nQueues; x++)
 //  	printf("%d", aQueues[QOrdered[x]].id);
-//	printf("Ordering Done\n");
+// 	printf("Ordering Done\n");
 
   while(checkAllDone(nProcesses, aProcesses) == 0)
   {    
+    //printf("Time Start: %d, Active: %d, CD: %d\n", systemTime, active, countdown);
     //check new arrivals
     int loc = 0;
     do{
       newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
-      if(newProcess >= 0)
+      if(newProcess >= 0 && aProcesses[newProcess].prevQueue < 0)
       {
         enqueue(newProcess, &(aQueues[QOrdered[0]])); //always enqueue to first queue
-        //printf("%d Enqueued ", newProcess);
+//        printf("%d Enqueued ", newProcess);
+        if(QActive > 0) 
+          preempt = 1;
     	}
       loc = newProcess+1;
     } while(newProcess != -1);
-    //printf("Arrivals at %d", systemTime);
+
+    //check IO arrivals
+    loc = 0;
+    do{
+      newProcess = checkNewArrival(loc, systemTime, nProcesses, aProcesses);
+      if(newProcess >= 0 && aProcesses[newProcess].prevQueue >= 0)
+      {
+        enqueue(newProcess, &(aQueues[aProcesses[newProcess].prevQueue]));
+//        printf("%d Enqueued to %d", newProcess, aProcesses[newProcess].prevQueue);
+        if(QActive > aProcesses[newProcess].prevQueue) 
+          preempt = 1;
+    	}
+      loc = newProcess+1;
+    } while(newProcess != -1);
 
     //rr process and preemption
     if(active < 0) //no active
     {
+//      printf("IN IDLE\n");
       //get new active process if exists
       int i;
       for(i=0; i<nQueues; i++)
@@ -61,20 +80,86 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
         {
         	QActive = i;
         	break;
-		}
+		    }
       }
+
       if(newActive >= 0)
       {
         active = dequeue(&(aQueues[QOrdered[QActive]]));
+        if(aProcesses[active].runCnt >= 300)
+          addSpace(&aProcesses[active]);
         aProcesses[active].aActivity[aProcesses[active].runCnt] = aQueues[QOrdered[QActive]].id;
         aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
         aProcesses[active].runCnt++;
       }
-      countdown = aQueues[QOrdered[QActive]].quantum;
-      //printf("%d\n", countdown);
+
+      if(active >= 0 && aProcesses[active].tsCountdown < 0)
+      {
+        aProcesses[active].tsCountdown = aQueues[QOrdered[QActive]].quantum;
+        countdown = aProcesses[active].tsCountdown;
+      }
+      else
+        countdown = aQueues[QOrdered[QActive]].quantum;
   	}
-    else if(QActive != 0 && aQueues[QOrdered[0]].size > 0 || countdown == aQueues[QOrdered[QActive]].quantum)
+    else if(aProcesses[active].ioCountdown == 0)
     {
+//      printf("IN IO\n");
+      //end process
+      aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
+
+      //alloc more array space for adding IO record
+      if(aProcesses[active].runCnt >= 300)
+        addSpace(&aProcesses[active]);
+      aProcesses[active].aActivity[aProcesses[active].runCnt] = -1;
+      aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
+      aProcesses[active].aEnd[aProcesses[active].runCnt] = systemTime + aProcesses[active].ioLength;
+      aProcesses[active].runCnt++;
+
+      //reset IO cd
+      aProcesses[active].ioCountdown = aProcesses[active].ioFrequency;
+
+      //wait for return
+      if(aProcesses[active].tsCountdown == 0 && QActive < nQueues-1)
+        aProcesses[active].prevQueue = QActive+1;
+      else
+        aProcesses[active].prevQueue = QActive;
+
+      if(aProcesses[active].remainingTime > 0)
+        aProcesses[active].arrivalTime = aProcesses[active].ioLength + systemTime;
+
+      //get new active process
+      int i;
+      for(i=0; i<nQueues; i++)
+      {
+        newActive = peek(&(aQueues[QOrdered[i]]));
+        if(newActive >= 0)
+        {
+        	QActive = i;
+        	break;
+		    }
+      }
+      active = dequeue(&(aQueues[QOrdered[QActive]]));
+      if(active >= 0)
+      {
+        if(aProcesses[active].runCnt >= 300)
+          addSpace(&aProcesses[active]);
+        aProcesses[active].aActivity[aProcesses[active].runCnt] = aQueues[QOrdered[QActive]].id;
+        aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
+        aProcesses[active].runCnt++;
+      }
+      
+      if(active >= 0 && aProcesses[active].tsCountdown < 0)
+      {
+        aProcesses[active].tsCountdown = aQueues[QOrdered[QActive]].quantum;
+        countdown = aProcesses[active].tsCountdown;
+      }
+      else
+        countdown = aQueues[QOrdered[QActive]].quantum;
+    }
+    else if(QActive != 0 && preempt == 1 || countdown == aQueues[QOrdered[QActive]].quantum)
+    {
+//      printf("IN PREEMPT\n");
+      preempt--;
       //demote current process
       aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
       if(QActive+1 >= nQueues-1)
@@ -95,29 +180,30 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
         {
         	QActive = i;
         	break;
-		}
+		    }
       }
       active = dequeue(&(aQueues[QOrdered[QActive]]));
-      if(aProcesses[active].runCnt >= 1)
-      {
-        aProcesses[active].aActivity = realloc(aProcesses[active].aActivity, aProcesses[active].runCnt+1);
-        aProcesses[active].aStart = realloc(aProcesses[active].aStart, aProcesses[active].runCnt+1);
-        aProcesses[active].aEnd = realloc(aProcesses[active].aEnd, aProcesses[active].runCnt+1);
-      }
+      if(aProcesses[active].runCnt >= 300)
+        addSpace(&aProcesses[active]);
       aProcesses[active].aActivity[aProcesses[active].runCnt] = aQueues[QOrdered[QActive]].id;
       aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
       aProcesses[active].runCnt++;
       
-      countdown = aQueues[QOrdered[QActive]].quantum;
-      //printf("%d\n", countdown);
+      if(active >= 0 && aProcesses[active].tsCountdown < 0)
+      {
+        aProcesses[active].tsCountdown = aQueues[QOrdered[QActive]].quantum;
+        countdown = aProcesses[active].tsCountdown;
+      }
+      else
+        countdown = aQueues[QOrdered[QActive]].quantum;
     }
-    //else printf("SKIP %d\n", countdown);
     countdown--;
     if(countdown == 0)
       countdown = aQueues[QOrdered[QActive]].quantum;
 
     //update processs
-    updateActiveProcess(&aProcesses[active]);
+    if(active >= 0)
+      updateActiveProcess(&aProcesses[active]);
     int i, j, k;
     for(i=0; i<nQueues; i++)
     {
@@ -131,19 +217,33 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       }
     }
 
+    //printf("Time End: %d, Active: %d, CD: %d\n", systemTime, active, countdown);
     //update system time
     systemTime++;
 
     //handle process complete
-    if(aProcesses[active].remainingTime == 0)
+    if(active >=0 && aProcesses[active].remainingTime == 0)
     {
       aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
+
+      //alloc more array space for adding IO record
+      if(aProcesses[active].ioCountdown == 0)
+      {
+        if(aProcesses[active].runCnt >= 300)
+          addSpace(&aProcesses[active]);
+        aProcesses[active].aActivity[aProcesses[active].runCnt] = -1;
+        aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
+        aProcesses[active].aEnd[aProcesses[active].runCnt] = systemTime + aProcesses[active].ioLength;
+        aProcesses[active].runCnt++;
+      }
+
       printProcessReport(&aProcesses[active]);
+      
       active = -1;
     }
 
     //powerup
-    if(systemTime % boostTime == 0)
+    if(systemTime % boostTime == 0 && systemTime > 0)
       powerUps++;
 
     //priorityBoost
