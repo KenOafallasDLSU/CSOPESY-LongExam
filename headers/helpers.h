@@ -75,8 +75,14 @@ void printProcessReport(struct Process *process)
         printf("************************************\n");
 }
 
-void 
-priorityBoost(struct Queue queuelist[], int order[], int nQueues)
+void priorityBoost(struct Queue aQueues[], int QOrdered[], int nQueues)
 {
-        ;
+	int i, element;
+	
+	for(i = 1; i < nQueues; i++)
+		while(aQueues[QOrdered[i]].size > 0)
+		{
+			element = dequeue(&aQueues[QOrdered[i]]);		             
+		    enqueue(element, &aQueues[QOrdered[0]]);
+		}
 }
