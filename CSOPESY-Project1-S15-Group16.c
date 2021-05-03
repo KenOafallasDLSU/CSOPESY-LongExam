@@ -5,6 +5,8 @@ Group: 16
 Section: S15
 ***************************************************************/
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "headers/queue.h"
 #include "headers/process.h"
@@ -52,10 +54,10 @@ main()
 	int i;
 	
 	for(i = 0; i < nQueues; i++)
-		fscanf(fp, "%d %d %d", queuelist[i].id, queuelist[i].priority, queuelist[i].quantum); 
+		fscanf(fp, "%d %d %d", &queuelist[i].id, &queuelist[i].priority, &queuelist[i].quantum); 
 	
 	for(i = 0; i < nProcesses; i++)
-		fscanf(fp, "%d %d %d %d %d", processlist[i].processID, processlist[i].arrivalTime, processlist[i].executionTime, processlist[i].ioLength, processlist[i].ioFrequency); 
+		fscanf(fp, "%d %d %d %d %d", &processlist[i].processID, &processlist[i].arrivalTime, &processlist[i].executionTime, &processlist[i].ioLength, &processlist[i].ioFrequency); 
 	
 	priorityBoost(queuelist, nQueues);
 	
