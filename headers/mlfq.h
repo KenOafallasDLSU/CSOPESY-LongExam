@@ -4,13 +4,14 @@ Names:  TAN, Darren
 Group: 16
 Section: S15
 ***********************************************/
-void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], int nQueues)
+void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], int nQueues, int boostTime)
 {
   int newProcess;
   int systemTime = 0;
   int newActive = -1;
   int active = -1;
   int QActive = 0;
+  int powerUps = 0;
   int countdown;
   int i, j, k;
 
@@ -114,7 +115,6 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
     countdown--;
     if(countdown == 0)
       countdown = aQueues[QOrdered[QActive]].quantum;
-    //printf(" [%d] is ACTIVE", active);
 
     //update processs
     updateActiveProcess(&aProcesses[active]);
@@ -130,7 +130,6 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
         enqueue(k, &aQueues[i]);
       }
     }
-    //printf(" Updating at %d", systemTime);
 
     //update system time
     systemTime++;
@@ -141,10 +140,18 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
       printProcessReport(&aProcesses[active]);
       active = -1;
-      //printf(" Completing at %d", systemTime);
     }
-    
-    //printf("\n");
+
+    //powerup
+    if(systemTime % boostTime == 0)
+      powerUps++;
+
+    //priorityBoost
+    if(powerUps > 0 && active < 0)
+    {
+      powerUps--;
+      priorityBoost(aQueues, QOrdered, nQueues);
+    }
   }
 
   printf("Average Waiting Time: %.1f\n", getAvgWaitingTime(nProcesses, aProcesses));
