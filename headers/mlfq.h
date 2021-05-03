@@ -62,20 +62,20 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
         aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
         aProcesses[active].runCnt++;
       }
-    else if(activeQueue != 0 && orderedQueues[activeQueue].size > 0) || countdown == orderedQueues[activeQueue].quantum)
+    else if(QActive != 0 && orderedQueues[QActive].size > 0) || countdown == orderedQueues[QActive].quantum)
     {
       countdown = aQueue[QOrdered[QActive]].quantum;
 
       //demote current process
       aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
-      if(activeQueue+1 >= nQueues-1)
-        enqueue(active, &(aQueue+nQueues-1));
+      if(QActive+1 >= nQueues-1)
+        enqueue(active, &(aQueue[QOrdered[nQueues-1]]));
       else
-        enqueue(active, &(aQueue+activeQueue+1));
+        enqueue(active, &(aQueue[QOrdered[QActive+1]]));
 
       //check if preempt
-      if(activeQueue != 0 && orderedQueues[activeQueue].size > 0) 
-        activeQueue = 0;
+      if(QActive != 0 && orderedQueues[QActive].size > 0) 
+        QActive = 0;
 
       //get new active process
       active = dequeue(&(aQueue[QOrdered[QActive]]));
