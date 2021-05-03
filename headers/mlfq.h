@@ -114,18 +114,29 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
       aProcesses[active].aEnd[aProcesses[active].runCnt] = systemTime + aProcesses[active].ioLength;
       aProcesses[active].runCnt++;
+      aProcesses[active].turnaroundTime = aProcesses[active].turnaroundTime + aProcesses[active].ioLength;
 
       //reset IO cd
       aProcesses[active].ioCountdown = aProcesses[active].ioFrequency;
 
-      //wait for return
+      //demote
       if(aProcesses[active].tsCountdown == 0 && QActive < nQueues-1)
+      {
         aProcesses[active].prevQueue = QActive+1;
+        printf("P[%d] Demoted to %d\n", active, QActive+1);
+      }
       else
         aProcesses[active].prevQueue = QActive;
 
+      //wait for return
       if(aProcesses[active].remainingTime > 0)
         aProcesses[active].arrivalTime = aProcesses[active].ioLength + systemTime;
+
+      if(powerUps > 0)
+      {
+        powerUps--;
+        priorityBoost(aQueues, QOrdered, nQueues, aProcesses);
+      }
 
       //get new active process
       int i;
@@ -170,6 +181,12 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       //check if preempt
       if(QActive != 0 && aQueues[QOrdered[0]].size > 0) 
         QActive = 0;
+
+      if(powerUps > 0)
+      {
+        powerUps--;
+        priorityBoost(aQueues, QOrdered, nQueues, aProcesses);
+      }
 
       //get new active process
       int i;
@@ -227,15 +244,15 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
       aProcesses[active].aEnd[aProcesses[active].runCnt-1] = systemTime;
 
       //alloc more array space for adding IO record
-      if(aProcesses[active].ioCountdown == 0)
-      {
-        if(aProcesses[active].runCnt >= 300)
-          addSpace(&aProcesses[active]);
-        aProcesses[active].aActivity[aProcesses[active].runCnt] = -1;
-        aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
-        aProcesses[active].aEnd[aProcesses[active].runCnt] = systemTime + aProcesses[active].ioLength;
-        aProcesses[active].runCnt++;
-      }
+      // if(aProcesses[active].ioCountdown == 0)
+      // {
+      //   if(aProcesses[active].runCnt >= 300)
+      //     addSpace(&aProcesses[active]);
+      //   aProcesses[active].aActivity[aProcesses[active].runCnt] = -1;
+      //   aProcesses[active].aStart[aProcesses[active].runCnt] = systemTime;
+      //   aProcesses[active].aEnd[aProcesses[active].runCnt] = systemTime + aProcesses[active].ioLength;
+      //   aProcesses[active].runCnt++;
+      // }
 
       printProcessReport(&aProcesses[active]);
       
@@ -250,7 +267,7 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
     if(powerUps > 0 && active < 0)
     {
       powerUps--;
-      priorityBoost(aQueues, QOrdered, nQueues);
+      priorityBoost(aQueues, QOrdered, nQueues, aProcesses);
     }
   }
 
