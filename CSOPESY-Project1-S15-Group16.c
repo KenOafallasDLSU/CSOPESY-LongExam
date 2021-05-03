@@ -48,7 +48,7 @@ main()
 	
 	
 	struct Queue queuelist[nQueues]; // Queues
-    Process processlist[nProcesses]; // Processes
+        struct Process processlist[nProcesses]; // Processes
 	int i;
 	
 	for(i = 0; i < nQueues; i++)
