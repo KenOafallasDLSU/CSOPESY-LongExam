@@ -11,8 +11,10 @@ int checkAllDone(int nProcesses, struct Process aProcesses[])
 	int i;
         for(i=0; i<nProcesses; i++)
                 if(aProcesses[i].remainingTime != 0)
+                {
                         bAllDone = 0;
-
+                }        
+        
         return bAllDone;
 }
 
@@ -34,6 +36,9 @@ int checkNewArrival(int loc, int systemTime, int nProcesses, struct Process aPro
 void updateActiveProcess(struct Process *process)
 {
         process->remainingTime--;
+        process->tsCountdown--;
+        if(process->ioCountdown > 0)
+                process->ioCountdown--;
 }
 
 void updateWaitingProcess(struct Process *process)
@@ -68,4 +73,10 @@ void printProcessReport(struct Process *process)
         printf("Waiting time: %d\n", process->waitingTime);
         printf("Turnaround time: %d\n", process->turnaroundTime);
         printf("************************************\n");
+}
+
+void 
+priorityBoost(struct Queue queuelist[], int order[], int nQueues)
+{
+        ;
 }
