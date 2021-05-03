@@ -18,7 +18,7 @@ struct Queue
 
 void initQueue(struct Queue *q)
 {
-    q->max = 100
+    q->max = 100;
 	q->size = 0;
     q->head = 0;
     q->tail = 99;

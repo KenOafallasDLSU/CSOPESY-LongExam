@@ -22,3 +22,14 @@ struct Process
         int *aActivity;
         int runCnt;
 };
+
+void initProcess(struct Process *p)
+{
+        p->waitingTime = 0;
+        p->remainingTime = p->executionTime;
+        p->turnaroundTime = p->executionTime;
+        p->runCnt = 0;
+        p->aStart = (int*) malloc(sizeof(int));
+        p->aEnd = (int*) malloc(sizeof(int));
+        p->aActivity = (int*) malloc(sizeof(int));
+}

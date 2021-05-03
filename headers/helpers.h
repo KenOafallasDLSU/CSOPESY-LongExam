@@ -59,7 +59,12 @@ void printProcessReport(struct Process *process)
 		
 	printf("P[%d]\n", process->processID);
 	for(i=0; i<process->runCnt; i++)
-	        printf("Start time: %d End time: %d\n", *(process->aStart+i), *(process->aEnd+i));
+        {
+                if(*(process->aActivity+i) >= 0)
+	                printf("Q[%d] Start time: %d End time: %d\n", *(process->aActivity+i), *(process->aStart+i), *(process->aEnd+i));
+                else
+                        printf("[IO] Start time: %d End time: %d\n", *(process->aStart+i), *(process->aEnd+i));
+        }
         printf("Waiting time: %d\n", process->waitingTime);
         printf("Turnaround time: %d\n", process->turnaroundTime);
         printf("************************************\n");
