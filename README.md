@@ -1,4 +1,4 @@
-# CSOPESY Long Exam 1 
+# CSOPESY Long Exam 1 - MLFQ in C
 
 ## Authors
 
@@ -21,3 +21,18 @@ Thus, the file `sample.txt` should be input as
 ```
 Enter file name: sample
 ```
+
+## Notes on Behavior
+
+- Priority Boost enqueues processes to the highest priority queue in FCFS order by repeated dequeue-enqueue, from higest priority to lowest priority, such that the priority and order is retained.
+
+- A process that has consumed its time share is requeued first before IO processes are requeued if they occur at the same time.
+
+- Preempted processes, processes that have consumed their time share, and returning IO processes are requeued first before Priority Boost is performed.
+
+- Newly arriving processes are enqueued first before preempted processes and processes that have consumed their time share.
+
+- IO time does not count to waiting time, but is counted in turnaround time
+
+
+
