@@ -11,6 +11,7 @@ Section: S15
 #include "headers/queue.h"
 #include "headers/process.h"
 #include "headers/helpers.h"
+#include "headers/mlfqr.h"
 #include "headers/mlfq.h"
 
 int
@@ -85,7 +86,7 @@ main()
 		}
 	}
 	
-	mlfq(processlist, nProcesses, queuelist, nQueues, time_period);
+	mlfqr(processlist, nProcesses, queuelist, nQueues, time_period);
 	
 	return 0;
 }
