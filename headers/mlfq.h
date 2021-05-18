@@ -31,14 +31,8 @@ void mlfq(struct Process aProcesses[], int nProcesses, struct Queue aQueues[], i
         QOrdered[k+1] = temp;
       }
 
-//  int x;
-//  for(x=0; x<nQueues; x++)
-//  	printf("%d", aQueues[QOrdered[x]].id);
-// 	printf("Ordering Done\n");
-
   while(checkAllDone(nProcesses, aProcesses) == 0)
   {    
-    //printf("Time Start: %d, Active: %d, CD: %d\n", systemTime, active, countdown);
     //check new arrivals
     int loc = 0;
     do{
